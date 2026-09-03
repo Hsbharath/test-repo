@@ -1,6 +1,13 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 
-const dataSet = [
+interface CheckboxNode {
+  id: string;
+  label: string;
+  checked: boolean;
+  children?: CheckboxNode[];
+}
+
+const dataSet: CheckboxNode[] = [
   {
     id: 'electronics',
     label: 'Electronics',
@@ -37,55 +44,36 @@ const dataSet = [
   },
 ];
 
-const ItemGroup = ({ item, onCheckboxChange }) => {
+interface ItemGroupProps {
+  item: CheckboxNode;
+  onCheckboxChange: (itemId: string) => void;
+}
+
+const ItemGroup = ({ item, onCheckboxChange }: ItemGroupProps) => {
     return(
         <li>
             <input type="checkbox" checked={item.checked} onChange={() => onCheckboxChange(item.id)}/>
-            <label>{item.label}</label>         
+            <label>{item.label}</label>
             {item.children && item.children.length > 0 && (
                 <ul>
                     {item.children.map((child) => (
                         <ItemGroup key={child.id} item={child} onCheckboxChange={onCheckboxChange} />
                     ))}
                 </ul>
-            )}          
+            )}
         </li>
     )
 }
 
 const NestedCheckboxes = () => {
 
-    const [items, setItems] = useState(dataSet);
+    const [items, setItems] = useState<CheckboxNode[]>(dataSet);
 
-    const toggleChecked = (nodes, itemId, checkedValue = null) => {
-        // return nodes.map((node) => {
-
-        //     if(checkedValue !== null){
-        //         return {
-        //             ...node,
-        //             checked: checkedValue,
-        //             children: node.children ? toggleChecked(node.children, null, checkedValue) : [],
-        //         };
-        //     }
-
-        //     if (node.id === itemId) {
-        //         const newChecked = !node.checked;
-        //         return {
-        //             ...node,
-        //             checked: newChecked,
-        //             children: node.children ? toggleChecked(node.children, null, newChecked) : [],
-        //         };
-        //     }
-
-        //     if(node.children){
-        //         return {
-        //             ...node,
-        //             children: toggleChecked(node.children, itemId, null),
-        //         };
-        //     }
-
-        //     return node;
-        // })
+    const toggleChecked = (
+      nodes: CheckboxNode[],
+      itemId: string | null,
+      checkedValue: boolean | null = null
+    ): CheckboxNode[] => {
 
         return nodes.map((node) => {
 
@@ -98,11 +86,11 @@ const NestedCheckboxes = () => {
             }
 
             if(node.id === itemId){
-                let newChecked = !node.checked;
+                const newChecked = !node.checked;
                 return {
                     ...node,
                     checked: newChecked,
-                    children: toggleChecked(node.children, null, newChecked)
+                    children: node.children ? toggleChecked(node.children, null, newChecked) : []
                 }
             }
 
@@ -117,14 +105,13 @@ const NestedCheckboxes = () => {
         })
     }
 
-    const handleCheckboxChange = (itemId) => {
-        // console.log('handleCheckboxChange', itemId);
+    const handleCheckboxChange = (itemId: string) => {
         setItems((prevItems) =>  toggleChecked(prevItems, itemId));
     }
 
-    const getCheckedItems = (nodes) => {
+    const getCheckedItems = (nodes: CheckboxNode[]): string[] => {
 
-        let result = [];
+        let result: string[] = [];
 
         nodes.forEach(node => {
             if(node.checked){

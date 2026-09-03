@@ -1,13 +1,21 @@
-import React, { useState, useEffect } from 'react'
 import useFetch from '../hooks/useFetch'
-
 
 const URL = `https://hacker-news.firebaseio.com/v0/jobstories.json`
 
-const JobItem = ({ job }) => {
+interface Job {
+    id: number;
+    title: string;
+    by: string;
+}
 
-    let NEW_URL = `https://hacker-news.firebaseio.com/v0/item/${job}.json`;
-    const { data, isLoading, error } = useFetch({ URL : NEW_URL});
+interface JobItemProps {
+    job: number;
+}
+
+const JobItem = ({ job }: JobItemProps) => {
+
+    const NEW_URL = `https://hacker-news.firebaseio.com/v0/item/${job}.json`;
+    const { data, isLoading, error } = useFetch<Job | null>({ URL: NEW_URL, initialData: null });
 
     if (isLoading) return <li>Loading details for job #{job}...</li>;
     if (error) return <li>Error loading job #{job}: {error}</li>;
@@ -19,12 +27,11 @@ const JobItem = ({ job }) => {
             <p> by {data.by}</p>
         </div>
     )
-}   
+}
 
 const NestedFetchofJobs = () => {
 
-    const { data, isLoading, error } = useFetch({ URL });
-    const [ jobs, setJobs ] = useState([]);
+    const { data, isLoading, error } = useFetch<number[]>({ URL, initialData: [] });
 
     if(isLoading){
         return <p>Loading...</p>

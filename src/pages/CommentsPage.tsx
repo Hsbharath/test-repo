@@ -1,8 +1,15 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import CommentsList from '../components/CommentsList';
 import useFetch from '../hooks/useFetch';
 import Pagination from '../components/Pagination';
 
+interface Comment {
+  id: number;
+  postId: number;
+  name: string;
+  email: string;
+  body: string;
+}
 
 const PAGE_SIZE = 10;
 
@@ -10,11 +17,11 @@ const URL = `https://jsonplaceholder.typicode.com/comments`;
 
 const CommemntsPage = () => {
 
-    const { data, isLoading, error } = useFetch({ URL });
+    const { data, isLoading, error } = useFetch<Comment[]>({ URL, initialData: [] });
     const [currentPage, setCurrentPage] = useState(1);
 
     const totalPages = useMemo(() => {
-        if(!data) return [];
+        if(!data) return 0;
         return Math.ceil(data.length / PAGE_SIZE);
     }, [data]);
 
@@ -26,7 +33,7 @@ const CommemntsPage = () => {
     }, [data, currentPage]);
 
 
-    const handlePageChange = useCallback((page) => {
+    const handlePageChange = useCallback((page: number) => {
         setCurrentPage(page);
     }, []);
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useTodos } from '../context/TodoContext';
 import TodoList from '../components/TodoList';
 
@@ -9,11 +9,6 @@ const ToDoPage = () => {
     const { data, isLoading, error, onChange } = useTodos();
     const [ currentPage, setCurrentPage] = useState(1);
 
-    const totalPages = useMemo(() => {
-        if(!data || !data.length) return 0;
-        return Math.ceil(data.length / PAGE_SIZE);
-    }, [data]);
-
     const currentTodos = useMemo(() => {
       if(!data || !data.length) return [];
       const START_INDEX = (currentPage - 1) * PAGE_SIZE;
@@ -21,7 +16,7 @@ const ToDoPage = () => {
       return data.slice(START_INDEX, END_INDEX);
     }, [data, currentPage]);
 
-    const handleTodoChange = (todoId) => {
+    const handleTodoChange = (todoId: number) => {
       onChange(todoId);
     }
 
@@ -32,7 +27,7 @@ const ToDoPage = () => {
     if(error){
         return <p>{error}</p>
     }
-    
+
     if(!data || !data.length){
         return <p>No todos found</p>
     }
@@ -41,7 +36,7 @@ const ToDoPage = () => {
     <div>
       {currentTodos.map((todo) => (
         < TodoList key={todo.id} todo={todo} onchange={handleTodoChange}/>
-      ))}  
+      ))}
       {currentTodos.length > 0 && (
         <div>
           <button onClick={() => setCurrentPage((prev) => prev - 1)} disabled={currentPage === 1}>

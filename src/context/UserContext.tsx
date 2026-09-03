@@ -1,13 +1,26 @@
-import { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react';
 
 const URL = `https://json-placeholder.mock.beeceptor.com/users`;
 
-const UserContext = createContext();
+export interface User {
+  id: number;
+  name: string;
+  country: string;
+  [key: string]: unknown;
+}
 
-export const UserProvider = ({ children }) => {
-  const [users, setUsers] = useState([]);
+interface UserContextValue {
+  users: User[];
+  isLoading: boolean;
+  error: string | null;
+}
+
+const UserContext = createContext<UserContextValue | undefined>(undefined);
+
+export const UserProvider = ({ children }: { children: ReactNode }) => {
+  const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -25,7 +38,7 @@ export const UserProvider = ({ children }) => {
         }
       } catch (error) {
         if (isMounted) {
-          setError(error.message);
+          setError(error instanceof Error ? error.message : String(error));
         }
       } finally {
         if (isMounted) {
@@ -49,4 +62,10 @@ export const UserProvider = ({ children }) => {
   );
 };
 
-export const useUsers = () => useContext(UserContext);
+export const useUsers = () => {
+  const context = useContext(UserContext);
+  if (context === undefined) {
+    throw new Error('useUsers must be used within a UserProvider');
+  }
+  return context;
+};

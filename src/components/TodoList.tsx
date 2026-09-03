@@ -1,4 +1,11 @@
-const TodoList = ({ todo, onchange }) => {
+import type { Todo } from '../context/TodoContext';
+
+interface TodoListProps {
+  todo: Todo;
+  onchange: (todoId: number) => void;
+}
+
+const TodoList = ({ todo, onchange }: TodoListProps) => {
   return (
     <li>
         <strong>{todo.id}</strong>

@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, type ChangeEvent } from 'react';
 import UserList from '../components/UserList';
-import { useUsers } from '../context/UserContext';
+import { useUsers, type User } from '../context/UserContext';
 
 function UsersPage() {
   const { users, isLoading, error } = useUsers();
@@ -14,7 +14,7 @@ function UsersPage() {
   }, [users, search]);
 
   const groupedUsers = useMemo(() => {
-    return filteredUsers.reduce((acc, value) => {
+    return filteredUsers.reduce<Record<string, User[]>>((acc, value) => {
       const country = value.country;
       if (!acc[country]) {
         acc[country] = [];
@@ -24,7 +24,7 @@ function UsersPage() {
     }, {});
   }, [filteredUsers]);
 
-  const handleChange = useCallback((e) => {
+  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
   }, []);
 

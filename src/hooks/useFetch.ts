@@ -1,14 +1,26 @@
-import { useState,useEffect } from 'react';
+import { useState, useEffect, type Dispatch, type SetStateAction } from 'react';
 
-const useFetch = ({ URL } ) => {
-  const [data, setData] = useState([]);
+interface UseFetchOptions<T> {
+  URL?: string;
+  initialData: T;
+}
+
+interface UseFetchResult<T> {
+  data: T;
+  isLoading: boolean;
+  error: string | null;
+  setData: Dispatch<SetStateAction<T>>;
+}
+
+function useFetch<T>({ URL, initialData }: UseFetchOptions<T>): UseFetchResult<T> {
+  const [data, setData] = useState<T>(initialData);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
 
     if (!URL) {
-      setData([]);
+      setData(initialData);
       setIsLoading(false);
       setError(null);
       return;
@@ -24,7 +36,7 @@ const useFetch = ({ URL } ) => {
         if (!response.ok) {
           throw new Error(`Network Error - ${response.status}`);
         }
-        const data = await response.json();                         
+        const data = await response.json();
         setData(data);
       } catch (err) {
         if(err instanceof Error && err.name !== 'AbortError'){
@@ -41,7 +53,7 @@ const useFetch = ({ URL } ) => {
   }, [ URL] );
 
   return { data, isLoading, error, setData };
-  
+
 };
 
 export default useFetch;

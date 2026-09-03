@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 
-const dataSet = [
+interface TreeNodeData {
+  id: string;
+  label: string;
+  checked?: boolean;
+  children?: TreeNodeData[];
+}
+
+const dataSet: TreeNodeData[] = [
   {
     id: 'electronics',
     label: 'Electronics',
@@ -34,9 +41,9 @@ const dataSet = [
 ];
 
 // Helper 1: Recursively toggles ALL nodes beneath a target node to a true/false value
-const toggleAllChildren = (nodes, checkedValue) => {
+const toggleAllChildren = (nodes: TreeNodeData[], checkedValue: boolean): TreeNodeData[] => {
   return nodes.map((node) => {
-    const updatedNode = { ...node, checked: checkedValue };
+    const updatedNode: TreeNodeData = { ...node, checked: checkedValue };
     if (node.children) {
       updatedNode.children = toggleAllChildren(node.children, checkedValue);
     }
@@ -45,7 +52,11 @@ const toggleAllChildren = (nodes, checkedValue) => {
 };
 
 // Helper 2: Recursively traverses the tree to find the clicked ID and flips its state
-const updateTreeNodes = (nodes, targetId, nextCheckedValue = null) => {
+const updateTreeNodes = (
+  nodes: TreeNodeData[],
+  targetId: string,
+  nextCheckedValue: boolean | null = null
+): TreeNodeData[] => {
   return nodes.map((node) => {
     if (node.id === targetId) {
       // If nextCheckedValue is passed, we force it (parent toggle). Otherwise, we flip it (leaf click).
@@ -59,7 +70,7 @@ const updateTreeNodes = (nodes, targetId, nextCheckedValue = null) => {
 
     if (node.children) {
       const updatedChildren = updateTreeNodes(node.children, targetId, nextCheckedValue);
-      
+
       // Post-order evaluation: Re-calculate this parent's checkmark status based on its updated children
       const allChecked = updatedChildren.every((child) => child.checked);
       return {
@@ -73,27 +84,32 @@ const updateTreeNodes = (nodes, targetId, nextCheckedValue = null) => {
   });
 };
 
+interface TreeNodeProps {
+  node: TreeNodeData;
+  onToggle: (id: string, forceCheckedValue: boolean) => void;
+}
+
 // 1. RECURSIVE CHILD COMPONENT: Renders a node and recursively calls itself for any sub-children
-const TreeNode = ({ node, onToggle }) => {
-  const checkboxRef = useRef(null);
-  const hasChildren = node.children && node.children.length > 0;
+const TreeNode = ({ node, onToggle }: TreeNodeProps) => {
+  const checkboxRef = useRef<HTMLInputElement>(null);
+  const hasChildren = Boolean(node.children && node.children.length > 0);
 
   // Helper 3: Recursively collects the explicit checkmark states of all deep leaf nodes underneath this item
-  const getLeafCheckStates = (item) => {
+  const getLeafCheckStates = (item: TreeNodeData): boolean[] => {
     if (!item.children || item.children.length === 0) {
-      return [item.checked];
+      return [Boolean(item.checked)];
     }
     return item.children.flatMap(getLeafCheckStates);
   };
 
   // Determine indeterminate status dynamically on every single render cycle
-  let isChecked = node.checked;
+  let isChecked = Boolean(node.checked);
   let isIndeterminate = false;
 
   if (hasChildren) {
     const leafStates = getLeafCheckStates(node);
     const checkedLeaves = leafStates.filter(Boolean).length;
-    
+
     isChecked = checkedLeaves === leafStates.length;
     isIndeterminate = checkedLeaves > 0 && checkedLeaves < leafStates.length;
   }
@@ -127,7 +143,7 @@ const TreeNode = ({ node, onToggle }) => {
 
       {hasChildren && (
         <ul style={{ paddingLeft: "20px", marginTop: "4px", borderLeft: "1px dashed #ccc" }}>
-          {node.children.map((child) => (
+          {node.children!.map((child) => (
             <TreeNode key={child.id} node={child} onToggle={onToggle} />
           ))}
         </ul>
@@ -138,9 +154,9 @@ const TreeNode = ({ node, onToggle }) => {
 
 // 2. MAIN CONTAINER COMPONENT
 const IndeterminateState = () => {
-  const [treeData, setTreeData] = useState(dataSet);
+  const [treeData, setTreeData] = useState<TreeNodeData[]>(dataSet);
 
-  const handleToggle = (id, forceCheckedValue) => {
+  const handleToggle = (id: string, forceCheckedValue: boolean) => {
     setTreeData((prevTree) => updateTreeNodes(prevTree, id, forceCheckedValue));
   };
 
